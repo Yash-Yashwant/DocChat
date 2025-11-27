@@ -1,3 +1,12 @@
 meetingNotes.txt
 inference.ipynb
 lec10.pdf
+
+# Environment variables (contains API keys)
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+*.egg-info/

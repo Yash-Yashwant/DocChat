@@ -1,0 +1,16 @@
+[Unit]
+Description=DocChat FastAPI Backend
+After=network.target
+
+[Service]
+Type=simple
+User=yaga23
+WorkingDirectory=/home/yaga23/DocChat
+Environment="PATH=/home/yaga23/DocChat/venv/bin"
+EnvironmentFile=/home/yaga23/DocChat/.env
+ExecStart=/home/yaga23/DocChat/venv/bin/uvicorn fastApi.api:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

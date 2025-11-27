@@ -16,7 +16,10 @@ app = FastAPI(title="DocChat API", version="1.0.0")
 # Add CORS middleware so frontend can talk to backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",  # Local development
+        "https://*.vercel.app",   # Vercel deployments (wildcard)
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

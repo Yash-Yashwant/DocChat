@@ -159,12 +159,149 @@ When prompted, set the environment variable:
 
 ---
 
+---
+
+### Deploy Backend to GCP VM
+
+Deploy your FastAPI backend to a Google Cloud E2 VM instance.
+
+#### Step 1: Create a GCP VM Instance
+
+1. **Go to Google Cloud Console**:
+   - Navigate to [console.cloud.google.com](https://console.cloud.google.com)
+   - Select your project: `do-c-479403`
+
+2. **Create VM Instance**:
+   - Go to **Compute Engine** → **VM instances**
+   - Click **"Create Instance"**
+   - Configure:
+     - **Name**: `docchat-backend`
+     - **Region**: Choose closest to your users (e.g., `us-central1`)
+     - **Machine type**: `e2-medium` (2 vCPU, 4 GB memory)
+     - **Boot disk**: Ubuntu 22.04 LTS, 20 GB
+     - **Firewall**: Check "Allow HTTP traffic" and "Allow HTTPS traffic"
+   - Click **"Create"**
+
+3. **Configure Firewall Rule for Port 8000**:
+   - Go to **VPC Network** → **Firewall**
+   - Click **"Create Firewall Rule"**
+   - Name: `allow-fastapi`
+   - Targets: All instances in the network
+   - Source IP ranges: `0.0.0.0/0`
+   - Protocols and ports: `tcp:8000`
+   - Click **"Create"**
+
+#### Step 2: SSH into VM and Deploy
+
+1. **SSH into your VM**:
+   ```bash
+   gcloud compute ssh docchat-backend --zone=us-central1-a
+   ```
+
+2. **Clone your repository**:
+   ```bash
+   cd ~
+   git clone https://github.com/Yash-Yashwant/DocChat.git
+   cd DocChat
+   ```
+
+3. **Run the startup script**:
+   ```bash
+   chmod +x startup.sh
+   ./startup.sh
+   ```
+
+4. **Set up environment variables**:
+   ```bash
+   cp .env.example .env
+   nano .env
+   ```
+   Add your actual API keys:
+   ```
+   GOOGLE_API_KEY=your_actual_google_api_key
+   PINECONE_API_KEY=your_actual_pinecone_api_key
+   GOOGLE_APPLICATION_CREDENTIALS=/home/your-username/.config/gcloud/application_default_credentials.json
+   ```
+
+5. **Authenticate with Google Cloud** (for GCS access):
+   ```bash
+   gcloud auth application-default login
+   ```
+
+#### Step 3: Set Up Systemd Service
+
+1. **Copy service file**:
+   ```bash
+   sudo cp docchat.service /etc/systemd/system/
+   ```
+
+2. **Update service file with your username**:
+   ```bash
+   sudo nano /etc/systemd/system/docchat.service
+   ```
+   Replace `yaga23` with your actual username (run `whoami` to check)
+
+3. **Enable and start the service**:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable docchat
+   sudo systemctl start docchat
+   ```
+
+4. **Check service status**:
+   ```bash
+   sudo systemctl status docchat
+   ```
+
+#### Step 4: Get Your Backend URL
+
+1. **Find your VM's external IP**:
+   ```bash
+   gcloud compute instances list
+   ```
+   Or check in the GCP Console under VM instances
+
+2. **Your backend URL**: `http://YOUR_VM_EXTERNAL_IP:8000`
+
+3. **Test it**:
+   ```bash
+   curl http://YOUR_VM_EXTERNAL_IP:8000/
+   ```
+   Should return: `{"message":"DocChat API is running"}`
+
+#### Step 5: Update Vercel Environment Variable
+
+1. Go to your Vercel project settings
+2. Navigate to **Environment Variables**
+3. Update `VITE_API_URL` to: `http://YOUR_VM_EXTERNAL_IP:8000`
+4. Redeploy your frontend
+
+#### Service Management Commands
+
+```bash
+# Start service
+sudo systemctl start docchat
+
+# Stop service
+sudo systemctl stop docchat
+
+# Restart service
+sudo systemctl restart docchat
+
+# View logs
+sudo journalctl -u docchat -f
+
+# Check status
+sudo systemctl status docchat
+```
+
+---
+
 ## Next Steps (Optional)
 
-1. **Deploy Backend** - Deploy FastAPI to Google Cloud, Railway, or Render
-2. **GCS Integration** - Upload PDFs to Google Cloud Storage
-3. **User Authentication** - Add login/signup
-4. **Citations** - Show which page/section the answer came from
+1. **SSL/HTTPS** - Set up HTTPS with Let's Encrypt for production
+2. **User Authentication** - Add login/signup
+3. **Citations** - Show which page/section the answer came from
 
 ---
 
