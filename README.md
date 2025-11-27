@@ -109,11 +109,61 @@ DocChat/
 
 ---
 
+---
+
+## Deployment
+
+### Deploy Frontend to Vercel
+
+The frontend is configured for easy deployment to Vercel:
+
+#### Option 1: Deploy via Vercel Dashboard (Recommended)
+
+1. **Push to GitHub**:
+   ```bash
+   cd /home/yaga23/Documents/DocChat/DocChat
+   git add .
+   git commit -m "Configure for Vercel deployment"
+   git push
+   ```
+
+2. **Import to Vercel**:
+   - Go to [vercel.com](https://vercel.com) and sign in
+   - Click "Add New Project"
+   - Import your GitHub repository
+   - Set the **Root Directory** to `frontend`
+   - Vercel will auto-detect the Vite configuration
+
+3. **Configure Environment Variable**:
+   - In the Vercel project settings, go to "Environment Variables"
+   - Add: `VITE_API_URL` = `your-backend-url` (e.g., `https://your-api.com`)
+   - Click "Deploy"
+
+#### Option 2: Deploy via Vercel CLI
+
+```bash
+cd /home/yaga23/Documents/DocChat/DocChat/frontend
+npm install -g vercel
+vercel login
+vercel --prod
+```
+
+When prompted, set the environment variable:
+- `VITE_API_URL`: Your backend API URL
+
+#### Important Notes
+
+- **Backend CORS**: Your FastAPI backend must allow requests from your Vercel domain
+- **Environment Variables**: The frontend uses `VITE_API_URL` to connect to your backend
+- **Local Development**: Without `.env` file, it defaults to `http://localhost:8000`
+
+---
+
 ## Next Steps (Optional)
 
-1. **GCS Integration** - Upload PDFs to Google Cloud Storage
-2. **User Authentication** - Add login/signup
-3. **Deploy** - Deploy to Google Cloud E2 VM
+1. **Deploy Backend** - Deploy FastAPI to Google Cloud, Railway, or Render
+2. **GCS Integration** - Upload PDFs to Google Cloud Storage
+3. **User Authentication** - Add login/signup
 4. **Citations** - Show which page/section the answer came from
 
 ---
