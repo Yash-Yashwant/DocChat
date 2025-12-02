@@ -10,3 +10,7 @@ __pycache__/
 *.pyc
 venv/
 *.egg-info/
+
+.env
+DEMO_PREP.md
+ARCHITECTURE.md

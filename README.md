@@ -10,32 +10,21 @@ Your DocChat application is now fully functional with:
 
 ---
 
-## How to Run
+## Live Demo
 
-### Terminal 1: Start the Backend API
+**Frontend:** [https://doc-chat-one.vercel.app](https://doc-chat-one.vercel.app)
 
-```bash
-cd /home/yaga23/Documents/DocChat/DocChat
-conda activate datacenter
-python3 -m uvicorn fastApi.api:app --reload --port 8000
-```
+The application is fully deployed!
 
-You should see: `INFO: Application startup complete`
-
-### Terminal 2: Start the Frontend
-
-```bash
-cd /home/yaga23/Documents/DocChat/DocChat/frontend
-npm run dev
-```
-
-You should see: `Local: http://localhost:5173/`
+- **Frontend:** Hosted on Vercel
+- **Backend:** Hosted on Google Cloud VM
+- **Database:** Pinecone & Google Cloud Storage
 
 ---
 
 ## How to Use
 
-1. **Open your browser** to `http://localhost:5173`
+1. **Open your browser** to [https://doc-chat-one.vercel.app](https://doc-chat-one.vercel.app)
 2. **Upload a PDF**:
    - Drag and drop or click "Browse Files"
    - Wait for "File uploaded and processed successfully!"
@@ -48,15 +37,18 @@ You should see: `Local: http://localhost:5173/`
 ## What Each Part Does
 
 ### Backend API (`fastApi/api.py`)
+
 - `POST /upload` - Receives PDFs, saves them, calls `src/ingestion.py` to process into Pinecone
 - `POST /chat` - Receives questions, calls `src/graph.py` (LangGraph agent) to generate answers
 
 ### Frontend (`frontend/src/`)
+
 - `FileUpload.jsx` - Handles PDF uploads, sends to `/upload` endpoint
 - `ChatInterface.jsx` - Handles chat messages, sends to `/chat` endpoint
 - `App.jsx` - Main layout with gradient background
 
 ### RAG Pipeline (`src/`)
+
 - `config.py` - API keys and settings
 - `ingestion.py` - PDF → chunks → embeddings → Pinecone
 - `retrieval.py` - Search Pinecone for relevant chunks
@@ -67,18 +59,22 @@ You should see: `Local: http://localhost:5173/`
 ## Troubleshooting
 
 **Backend won't start?**
+
 - Make sure you're in the `DocChat` directory (not `fastApi`)
 - Activate conda: `conda activate datacenter`
 
 **Frontend won't start?**
+
 - Make sure you're in the `frontend` directory
 - Run `npm install` if needed
 
 **Upload fails?**
+
 - Check that backend is running on port 8000
 - Check browser console for errors
 
 **Chat doesn't work?**
+
 - Make sure you've uploaded a document first
 - Check that your `.env` file has `GOOGLE_API_KEY` and `PINECONE_API_KEY`
 
@@ -120,6 +116,7 @@ The frontend is configured for easy deployment to Vercel:
 #### Option 1: Deploy via Vercel Dashboard (Recommended)
 
 1. **Push to GitHub**:
+
    ```bash
    cd /home/yaga23/Documents/DocChat/DocChat
    git add .
@@ -149,6 +146,7 @@ vercel --prod
 ```
 
 When prompted, set the environment variable:
+
 - `VITE_API_URL`: Your backend API URL
 
 #### Important Notes
@@ -194,11 +192,13 @@ Deploy your FastAPI backend to a Google Cloud E2 VM instance.
 #### Step 2: SSH into VM and Deploy
 
 1. **SSH into your VM**:
+
    ```bash
    gcloud compute ssh docchat-backend --zone=us-central1-a
    ```
 
 2. **Clone your repository**:
+
    ```bash
    cd ~
    git clone https://github.com/Yash-Yashwant/DocChat.git
@@ -206,17 +206,21 @@ Deploy your FastAPI backend to a Google Cloud E2 VM instance.
    ```
 
 3. **Run the startup script**:
+
    ```bash
    chmod +x startup.sh
    ./startup.sh
    ```
 
 4. **Set up environment variables**:
+
    ```bash
    cp .env.example .env
    nano .env
    ```
+
    Add your actual API keys:
+
    ```
    GOOGLE_API_KEY=your_actual_google_api_key
    PINECONE_API_KEY=your_actual_pinecone_api_key
@@ -224,6 +228,7 @@ Deploy your FastAPI backend to a Google Cloud E2 VM instance.
    ```
 
 5. **Authenticate with Google Cloud** (for GCS access):
+
    ```bash
    gcloud auth application-default login
    ```
@@ -231,17 +236,21 @@ Deploy your FastAPI backend to a Google Cloud E2 VM instance.
 #### Step 3: Set Up Systemd Service
 
 1. **Copy service file**:
+
    ```bash
    sudo cp docchat.service /etc/systemd/system/
    ```
 
 2. **Update service file with your username**:
+
    ```bash
    sudo nano /etc/systemd/system/docchat.service
    ```
+
    Replace `yaga23` with your actual username (run `whoami` to check)
 
 3. **Enable and start the service**:
+
    ```bash
    sudo systemctl daemon-reload
    sudo systemctl enable docchat
@@ -249,6 +258,7 @@ Deploy your FastAPI backend to a Google Cloud E2 VM instance.
    ```
 
 4. **Check service status**:
+
    ```bash
    sudo systemctl status docchat
    ```
@@ -256,24 +266,48 @@ Deploy your FastAPI backend to a Google Cloud E2 VM instance.
 #### Step 4: Get Your Backend URL
 
 1. **Find your VM's external IP**:
+
    ```bash
    gcloud compute instances list
    ```
+
    Or check in the GCP Console under VM instances
 
 2. **Your backend URL**: `http://YOUR_VM_EXTERNAL_IP:8000`
 
 3. **Test it**:
+
    ```bash
    curl http://YOUR_VM_EXTERNAL_IP:8000/
    ```
+
    Should return: `{"message":"DocChat API is running"}`
 
-#### Step 5: Update Vercel Environment Variable
+#### Step 5: Set Up HTTPS with Cloudflare Tunnel (Recommended)
+
+Since Vercel uses HTTPS, your backend must also use HTTPS to avoid "Mixed Content" errors. The easiest way is using Cloudflare Tunnel.
+
+1. **Install Cloudflared on your VM**:
+
+   ```bash
+   wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && sudo dpkg -i cloudflared-linux-amd64.deb
+   ```
+
+2. **Start the Tunnel**:
+
+   ```bash
+   cloudflared tunnel --url http://localhost:8000
+   ```
+
+3. **Get your HTTPS URL**:
+   - Copy the URL from the output (e.g., `https://random-name.trycloudflare.com`)
+   - **Keep this terminal window open!**
+
+#### Step 6: Update Vercel Environment Variable
 
 1. Go to your Vercel project settings
 2. Navigate to **Environment Variables**
-3. Update `VITE_API_URL` to: `http://YOUR_VM_EXTERNAL_IP:8000`
+3. Update `VITE_API_URL` to your Cloudflare URL: `https://your-tunnel-url.trycloudflare.com`
 4. Redeploy your frontend
 
 #### Service Management Commands
@@ -299,7 +333,7 @@ sudo systemctl status docchat
 
 ## Next Steps (Optional)
 
-1. **SSL/HTTPS** - Set up HTTPS with Let's Encrypt for production
+1. **Permanent Tunnel** - Configure Cloudflare Tunnel to run as a service
 2. **User Authentication** - Add login/signup
 3. **Citations** - Show which page/section the answer came from
 
